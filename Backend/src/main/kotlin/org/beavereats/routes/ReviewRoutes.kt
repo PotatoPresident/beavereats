@@ -1,6 +1,8 @@
 package org.beavereats.routes
 
+import com.mongodb.client.model.Filters.and
 import com.mongodb.client.model.Filters.eq
+import com.mongodb.client.model.Updates
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -31,7 +33,7 @@ fun Route.reviewRouting() {
                     "Missing locationId",
                     status = HttpStatusCode.BadRequest
                 )
-                val rating = params["rating"] ?: return@post call.respondText(
+                val rating = params["rating"]?.toDouble()?.coerceAtMost(5.0) ?: return@post call.respondText(
                     "Missing rating",
                     status = HttpStatusCode.BadRequest
                 )
@@ -40,8 +42,10 @@ fun Route.reviewRouting() {
                     status = HttpStatusCode.BadRequest
                 )
                 val userId = call.principal<UserSession>()!!.id
-                val review = Review(userId, location, rating.toInt(), comment)
-                if (reviews.insertOne(review).wasAcknowledged()) {
+                val review = Review(userId, location, rating, comment)
+                if (reviews.updateOne(and(eq(Review::locationId.name, location), eq(Review::userId.name, userId)), Updates.set(Review::rating.name, rating)).matchedCount >= 1) {
+                    call.respondText("Review stored correctly", status = HttpStatusCode.Created)
+                } else if (reviews.insertOne(review).wasAcknowledged()) {
                     call.respondText("Review stored correctly", status = HttpStatusCode.Created)
                 } else {
                     call.respondText("Error storing review", status = HttpStatusCode.InternalServerError)

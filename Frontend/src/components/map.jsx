@@ -28,7 +28,7 @@ export default function Map({ state }) {
     const { Map } = await google.maps.importLibrary('maps')
 
     const map = new Map(document.getElementById('map'), {
-      mapId: '54153603699e2b81',
+      mapId: 'b136f702a28f987e',
       center: CORVALLIS,
       restriction: {
         latLngBounds: CORVALLIS_BOUNDS,

@@ -7,7 +7,7 @@ import org.beavereats.storage.database
 data class Review(
     var userId: String?,
     val locationId: String,
-    var rating: Int,
+    var rating: Double,
     var review: String?
 )
 
